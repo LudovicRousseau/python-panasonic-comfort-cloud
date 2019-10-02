@@ -62,7 +62,7 @@ def main(options):
     if options.date:
         logging.debug("Getting for date:", options.date)
 
-    session = pcomfortcloud.Session(LOGIN, PASSWORD, verifySsl=False)
+    session = pcomfortcloud.Session(LOGIN, PASSWORD)
     session.login()
 
     devices = session.get_devices()
