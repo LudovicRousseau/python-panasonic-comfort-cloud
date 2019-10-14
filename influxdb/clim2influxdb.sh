@@ -17,7 +17,6 @@ fi
 DAY=$(cat $LAST_DAY)
 echo "Last day is: $DAY"
 
-
 case $(basename $0) in
     clim2influxdb.sh)
         ARGS="--current"
@@ -41,3 +40,5 @@ curl -XPOST --silent 'https://zotac.apdu.fr:8086/write?db=db_clim' \
 		--data-binary \
 		@data.txt
 
+# update last day with today
+date +%Y/%m/%d > $LAST_DAY
