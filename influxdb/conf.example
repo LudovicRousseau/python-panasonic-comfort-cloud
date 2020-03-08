@@ -1,0 +1,7 @@
+INFLUXDB_USER="user"
+INFLUXDB_PASSWORD="password"
+INFLUXDB_SERVER="https://server.example.com:8086"
+INFLUXDB_DATABASE="db_clim"
+
+export CONFORT_CLOUD_LOGIN="email@example.com"
+export CONFORT_CLOUD_PASSWORD="password"
