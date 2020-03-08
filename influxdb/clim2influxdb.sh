@@ -24,19 +24,19 @@ function update_last_day()
 }
 
 case $(basename $0) in
-    clim2influxdb.sh)
-        ARGS="--current"
-        ;;
+	clim2influxdb.sh)
+		ARGS="--current"
+		;;
 
-    clim2influxdb_day.sh)
+	clim2influxdb_day.sh)
 		update_last_day
-        ARGS="--day $DAY"
-        ;;
+		ARGS="--day $DAY"
+		;;
 
-    clim2influxdb_month.sh)
+	clim2influxdb_month.sh)
 		update_last_day
-        ARGS="--month $DAY"
-        ;;
+		ARGS="--month $DAY"
+		;;
 esac
 
 echo "Using args: $ARGS"
