@@ -104,7 +104,7 @@ def get_historic(date, mode, db_name):
     day = int(day)
     hour = 0
     for record in historyDataList:
-        if mode is 'Day':
+        if mode == 'Day':
             hour = int(record['dataNumber'])
         else:
             day = int(record['dataNumber']) + 1
