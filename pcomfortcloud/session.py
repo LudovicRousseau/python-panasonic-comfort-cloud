@@ -40,7 +40,7 @@ class ResponseError(Error):
                 status_code,
                 text))
         self.status_code = status_code
-        self.text = json.loads(text)
+        self.text = text
 
 
 class Session(object):
@@ -174,7 +174,12 @@ class Session(object):
             self._devices = []
 
             for group in self._groups['groupList']:
-                for device in group['deviceIdList']:
+                if 'deviceList' in group:
+                    list = group.get('deviceList', [])
+                else:
+                    list = group.get('deviceIdList', [])
+
+                for device in list:
                     if device:
                         id = None
                         if 'deviceHashGuid' in device:
