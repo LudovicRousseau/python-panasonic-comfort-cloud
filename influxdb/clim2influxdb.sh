@@ -43,7 +43,7 @@ echo "Using args: $ARGS"
 ./clim2influxdb.py $ARGS > data.txt
 
 # echo "$res"
-curl -XPOST --silent "$INFLUXDB_SERVER/write?db=$INFLUXDB_DATABASE" \
+curl -XPOST --silent --show-error "$INFLUXDB_SERVER/write?db=$INFLUXDB_DATABASE" \
 		--user "$INFLUXDB_USER:$INFLUXDB_PASSWORD" \
 		--data-binary \
 		@data.txt
