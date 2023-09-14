@@ -1,8 +1,11 @@
 #!/bin/bash
 
+cd $(dirname $0)
+
 set -e
 
-cd $(dirname $0)
+source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+workon panasonic || true
 
 source conf
 
