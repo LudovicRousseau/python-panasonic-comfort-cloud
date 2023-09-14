@@ -4,8 +4,11 @@ cd $(dirname $0)
 
 set -e
 
-source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
-workon panasonic || true
+if [ -z "$VIRTUAL_ENV" ]
+then
+	source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+	workon panasonic || true
+fi
 
 source conf
 
