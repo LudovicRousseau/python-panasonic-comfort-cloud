@@ -88,8 +88,11 @@ def get_device(login, password):
 
 
 def get_historic(date, mode, db_name):
-    (year, month, day) = date.split('/')
-    date = year + month + day
+    dt = datetime.date.fromisoformat(date)
+    year = dt.year
+    month = dt.month
+    day = dt.day
+    date = "{:04}{:02}{:02}".format(year, month, day)
     logger.debug("Using date: " + date)
 
     (session, device_id) = get_device(LOGIN, PASSWORD)
@@ -99,15 +102,15 @@ def get_historic(date, mode, db_name):
     historyDataList = values['parameters']['historyDataList']
     logger.debug(pp.pformat(historyDataList))
 
-    year = int(year)
-    month = int(month)
-    day = int(day)
     hour = 0
     for record in historyDataList:
         if mode == 'Day':
-            hour = int(record['dataNumber'])
+            # 'dataTime': '20240803 00',
+            hour = int(record['dataTime'].split(" ")[1])
         else:
-            day = int(record['dataNumber']) + 1
+            # 'dataTime': '20240825'
+            dt = datetime.date.fromisoformat(record['dataTime'])
+            day = dt.day
 
         temperatureInside = record['averageInsideTemp']
 
