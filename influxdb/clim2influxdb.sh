@@ -18,7 +18,7 @@ function update_last_day()
 	if  [ ! -f $LAST_DAY ]
 	then
 		echo "No $LAST_DAY file. Creating one."
-		date +%Y/%m/%d > $LAST_DAY
+		date +%Y-%m-%d > $LAST_DAY
 		exit
 	fi
 
@@ -26,7 +26,7 @@ function update_last_day()
 	echo "Last day is: $DAY"
 
 	# update last day with today
-	date +%Y/%m/%d > $LAST_DAY
+	date +%Y-%m-%d > $LAST_DAY
 }
 
 case $(basename $0) in
