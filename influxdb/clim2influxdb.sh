@@ -45,6 +45,9 @@ case $(basename $0) in
 		;;
 esac
 
+# create the file ~/.panasonic-oauth-token with no goup+other read access
+umask 077
+
 echo "Using args: $ARGS"
 ./clim2influxdb.py $ARGS > data.txt
 
