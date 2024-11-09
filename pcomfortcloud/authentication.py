@@ -7,6 +7,7 @@ import string
 import time
 import urllib
 import requests
+import re
 
 from bs4 import BeautifulSoup
 from . import exceptions
@@ -69,11 +70,11 @@ class Authentication():
 
             if (now_unix > expiry_in_token) or \
                     (now_unix > self._token["unix_timestamp_token_received"] + self._token["expires_in_sec"]):
-                
+
                 if self._raw:
-                    print("--- Token is invalid")
+                    print("--- Token is expired")
                 return False
-            
+
             if self._raw:
                 print("--- Token is valid")
             return True
@@ -81,6 +82,36 @@ class Authentication():
             if self._raw:
                 print("--- Token is invalid")
             return False
+
+    def _get_api_key(self, timestamp: datetime.datetime, token: string):
+        try:
+            date = datetime.datetime(
+                timestamp.year, timestamp.month, timestamp.day,
+                timestamp.hour, timestamp.minute, timestamp.second,
+                0, datetime.timezone.utc
+            )
+            timestamp_ms = str(int(date.timestamp() * 1000))
+            
+            components = [
+                'Comfort Cloud'.encode('utf-8'),
+                '521325fb2dd486bf4831b47644317fca'.encode('utf-8'),
+                timestamp_ms.encode('utf-8'),
+                'Bearer '.encode('utf-8'),
+                token.encode('utf-8')
+            ]
+
+            input_buffer = b''.join(components)
+            hash_obj = hashlib.sha256()
+            hash_obj.update(input_buffer)
+            hash_str = hash_obj.hexdigest()
+
+            result = hash_str[:9] + 'cfc' + hash_str[9:]
+            return result
+        except Exception as ex:
+            raise exceptions.ResponseError(
+                f"(CFC: Failed to generate API key: " +
+                f"{ex}"
+            )
 
     def _get_new_token(self):
         requests_session = requests.Session()
@@ -232,17 +263,16 @@ class Authentication():
         # RETRIEVE ACC_CLIENT_ID
         # ------------------------------------------------------------------
         now = datetime.datetime.now()
-        timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
         response = requests.post(
             f'{constants.BASE_PATH_ACC}/auth/v2/login',
             headers={
                 "Content-Type": "application/json;charset=utf-8",
                 "User-Agent": "G-RAC",
                 "x-app-name": "Comfort Cloud",
-                "x-app-timestamp": timestamp,
+                "x-app-timestamp": now.strftime("%Y-%m-%d %H:%M:%S"),
                 "x-app-type": "1",
                 "x-app-version": self._app_version,
-                "x-cfc-api-key": generate_random_string_hex(128),
+                "x-cfc-api-key": self._get_api_key(now, token_response["access_token"]),
                 "x-user-authorization-v2": "Bearer " + token_response["access_token"]
             },
             json={
@@ -265,7 +295,7 @@ class Authentication():
 
     def get_token(self):
         return self._token
-    
+
     def set_token(self, token):
         self._token = token
 
@@ -280,7 +310,7 @@ class Authentication():
         else:
             self._get_new_token()
             return "Authenticating"
-        
+
         return "Valid"
 
     def logout(self):
@@ -311,11 +341,11 @@ class Authentication():
                 "grant_type": "refresh_token"
             },
             allow_redirects=False)
-        
+
         if response.status_code != 200:
             self._get_new_token()
             return
-        
+
         token_response = json.loads(response.text)
 
         self._token = {
@@ -330,17 +360,14 @@ class Authentication():
 
     def _get_header_for_api_calls(self, no_client_id=False):
         now = datetime.datetime.now()
-        timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
         return {
             "Content-Type": "application/json;charset=utf-8",
             "x-app-name": "Comfort Cloud",
             "user-agent": "G-RAC",
-            "x-app-timestamp": timestamp,
+            "x-app-timestamp": now.strftime("%Y-%m-%d %H:%M:%S"),
             "x-app-type": "1",
             "x-app-version": self._app_version,
-            # Seems to work by either setting X-CFC-API-KEY to 0 or to a 128-long hex string
-            # "X-CFC-API-KEY": "0",
-            "x-cfc-api-key": generate_random_string_hex(128),
+            "x-cfc-api-key": self._get_api_key(now, self._token["access_token"]),
             "x-client-id": self._token["acc_client_id"],
             "x-user-authorization-v2": "Bearer " + self._token["access_token"]
         }
@@ -413,19 +440,19 @@ class Authentication():
         if self._raw:
             print("--- auto detecting latest app version")
         try:
-            response = requests.get(constants.APPBRAIN_URL)
-            responseContent = response.content
-            soup = BeautifulSoup(responseContent, "html.parser")
-            meta_tag = soup.find("meta", itemprop="softwareVersion")
-            if meta_tag is not None:
-                version = meta_tag['content']
+            response = requests.get("https://play.google.com/store/apps/details?id=com.panasonic.ACCsmart")
+            responseText = response.content.decode("utf-8")
+            version_match = re.search(r'\[\"(\d+\.\d+\.\d+)\"\]', responseText)
+            if version_match:
+                version = version_match.group(1)
                 self._app_version = version
                 if self._raw:
                     print("--- found version: {}".format(self._app_version))
                 return
             else:
                 self._app_version = constants.X_APP_VERSION
-                print("--- Error finding meta_tag")
+                if self._raw:
+                    print("--- error finding version")
                 return
 
         except Exception:
